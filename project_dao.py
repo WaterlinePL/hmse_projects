@@ -1,15 +1,18 @@
 # Interface
 from abc import ABC, abstractmethod
-from io import BytesIO
-from typing import List, Tuple
+from typing import List
 
-from hmse_projects.project_metadata import ProjectMetadata
+import numpy as np
+from werkzeug.datastructures import FileStorage
+
+from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
+from hmse_simulations.hmse_projects.typing_help import ProjectID, ModflowID, HydrusID, WeatherID, ShapeID
 
 
 class ProjectDao(ABC):
 
     @abstractmethod
-    def read_metadata(self, project_id: str) -> ProjectMetadata:
+    def read_metadata(self, project_id: ProjectID) -> ProjectMetadata:
         ...
 
     @abstractmethod
@@ -21,37 +24,111 @@ class ProjectDao(ABC):
         ...
 
     @abstractmethod
-    def save_or_update_metadata(self, project: ProjectMetadata) -> None:
+    def save_or_update_metadata(self, metadata: ProjectMetadata) -> None:
         ...
 
     @abstractmethod
-    def delete_project(self, project_id: str) -> None:
+    def delete_project(self, project_id: ProjectID) -> None:
         ...
 
     @abstractmethod
-    def download_project(self, project_id: str) -> BytesIO:
+    def download_project(self, project_id: ProjectID) -> FileStorage:
         ...
 
     @abstractmethod
-    def add_hydrus_models_to_project(self, project_id: str,
-                                     model_names_with_archives: List[Tuple[str, BytesIO]]) -> None:
+    def add_hydrus_model(self, project_id: ProjectID, hydrus_id: ModflowID, archive: FileStorage) -> None:
         ...
 
     @abstractmethod
-    def add_modflow_model_to_project(self, project_id: str, model_name: str, archive: BytesIO) -> None:
+    def add_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID, archive: FileStorage) -> None:
         ...
 
     @abstractmethod
-    def remove_hydrus_model_from_project(self, project_id: str, model_name: str) -> None:
+    def delete_hydrus_model(self, project_id: ProjectID, hydrus_id: HydrusID) -> None:
         ...
 
     @abstractmethod
-    def remove_modflow_model_from_project(self, project_id: str, model_name: str) -> None:
+    def delete_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID) -> None:
         ...
 
     @abstractmethod
-    def is_project_finished(self, project_id: str) -> bool:
+    def add_weather_file(self, project_id: ProjectID, weather_id: WeatherID, weather_file: FileStorage) -> None:
+        ...
+
+    @abstractmethod
+    def delete_weather_file(self, project_id: ProjectID, weather_file_id: WeatherID) -> None:
+        ...
+
+    @abstractmethod
+    def save_or_update_shape(self, project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray) -> None:
+        ...
+
+    @abstractmethod
+    def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
+        ...
+
+    @abstractmethod
+    def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
         ...
 
 
-project_dao = ProjectDao()
+class ProjectMock(ProjectDao):
+
+    def read_metadata(self, project_id: ProjectID) -> ProjectMetadata:
+        return ProjectMetadata(project_id,
+                               finished=False,
+                               lat=10.10,
+                               long=34.34,
+                               start_date='01-01-2020',
+                               end_date='01-01-2022',
+                               spin_up=365,
+                               rows=10,
+                               cols=10,
+                               grid_unit='meter',
+                               row_cells=[50]*10,
+                               col_cells=[20]*10)
+
+    def read_all_metadata(self) -> List[ProjectMetadata]:
+        return [ProjectMetadata("sample-project")]
+
+    def read_all_names(self) -> List[ProjectID]:
+        return ["sample-project"]
+
+    def save_or_update_metadata(self, metadata: ProjectMetadata) -> None:
+        pass
+
+    def delete_project(self, project_id: ProjectID) -> None:
+        pass
+
+    def download_project(self, project_id: ProjectID) -> FileStorage:
+        pass
+
+    def add_hydrus_model(self, project_id: ProjectID, hydrus_id: ModflowID, archive: FileStorage) -> None:
+        pass
+
+    def add_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID, archive: FileStorage) -> None:
+        pass
+
+    def delete_hydrus_model(self, project_id: ProjectID, hydrus_id: HydrusID) -> None:
+        pass
+
+    def delete_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID) -> None:
+        pass
+
+    def add_weather_file(self, project_id: ProjectID, weather_id: WeatherID, weather_file: FileStorage) -> None:
+        pass
+
+    def delete_weather_file(self, project_id: ProjectID, weather_file_id: WeatherID) -> None:
+        pass
+
+    def save_or_update_shape(self, project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray) -> None:
+        pass
+
+    def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
+        pass
+
+    def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
+        pass
+
+
+project_dao = ProjectMock()
