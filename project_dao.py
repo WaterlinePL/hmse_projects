@@ -5,6 +5,7 @@ from typing import List
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
+from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
 from hmse_simulations.hmse_projects.typing_help import ProjectID, ModflowID, HydrusID, WeatherID, ShapeID
 
@@ -76,17 +77,25 @@ class ProjectMock(ProjectDao):
 
     def read_metadata(self, project_id: ProjectID) -> ProjectMetadata:
         return ProjectMetadata(project_id,
-                               finished=False,
+                               project_name=project_id,
+                               finished=True,
                                lat=10.10,
                                long=34.34,
                                start_date='01-01-2020',
                                end_date='01-01-2022',
                                spin_up=365,
-                               rows=10,
-                               cols=10,
-                               grid_unit='meter',
-                               row_cells=[50]*10,
-                               col_cells=[20]*10)
+                               modflow_metadata=ModflowMetadata(
+                                   modflow_id="cekcyn-test",
+                                   rows=10,
+                                   cols=10,
+                                   grid_unit='meter',
+                                   row_cells=[50] * 10,
+                                   col_cells=[20] * 10),
+                               hydrus_models={'las', 'trawa'},
+                               weather_files={'weather1', 'weather2'},
+                               shapes={'shape1': 'green',
+                                       'shape2': 'blue'}
+                               )
 
     def read_all_metadata(self) -> List[ProjectMetadata]:
         return [ProjectMetadata("sample-project")]

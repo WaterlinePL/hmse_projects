@@ -6,3 +6,4 @@ ModflowID = ModelName
 HydrusID = ModelName
 WeatherID = ModelName
 ShapeID = ModelName
+ShapeColor = str
