@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Set, Dict, Union
 
 # Is represented as .json file in store, accessed via dao
+from flask import jsonify
+
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_exceptions import UnknownShape, UnknownHydrusModel
 from hmse_simulations.hmse_projects.typing_help import HydrusID, ModflowID, WeatherID, ShapeID, ProjectID, ShapeColor
@@ -91,5 +93,10 @@ class ProjectMetadata:
     def contains_shape(self, shape_id: ShapeID) -> bool:
         return shape_id in self.shapes
 
-    def to_json(self):
-        return self.__dict__
+    def to_json_str(self):
+        self.hydrus_models = list(self.hydrus_models)
+        self.weather_files = list(self.weather_files)
+        serialized = jsonify(self)
+        self.hydrus_models = set(self.hydrus_models)
+        self.weather_files = set(self.weather_files)
+        return serialized

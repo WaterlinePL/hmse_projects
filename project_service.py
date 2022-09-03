@@ -79,7 +79,7 @@ def add_weather_file(project_id: ProjectID, weather_file: FileStorage):
 
 def delete_weather_file(project_id: ProjectID, weather_id: HydrusID):
     metadata = project_dao.read_metadata(project_id)
-    metadata.delete_weather_file(weather_id)
+    metadata.remove_weather_file(weather_id)
     project_dao.delete_weather_file(project_id, weather_id)
     project_dao.save_or_update_metadata(metadata)
 
