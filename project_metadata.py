@@ -5,7 +5,8 @@ from typing import List, Optional, Set, Dict, Union
 from flask import jsonify
 
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from hmse_simulations.hmse_projects.project_exceptions import UnknownShape, UnknownHydrusModel
+from hmse_simulations.hmse_projects.project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
+    DuplicateWeatherFile, UnknownWeatherFile
 from hmse_simulations.hmse_projects.typing_help import HydrusID, ModflowID, WeatherID, ShapeID, ProjectID, ShapeColor
 
 
@@ -35,50 +36,69 @@ class ProjectMetadata:
         self.modflow_metadata = None
 
     def add_hydrus_model(self, hydrus_id: HydrusID):
-        self.hydrus_models.add(hydrus_id)
+        if hydrus_id not in self.hydrus_models:
+            self.hydrus_models.add(hydrus_id)
+        else:
+            raise DuplicateHydrusModel(description=f"Hydrus model with ID {hydrus_id} already present in project!")
 
     def remove_hydrus_model(self, hydrus_id: HydrusID):
-        self.hydrus_models.remove(hydrus_id)
+        try:
+            self.hydrus_models.remove(hydrus_id)
+        except KeyError:
+            raise UnknownHydrusModel(description=f"Cannot delete model {hydrus_id} - no such model")
 
     def add_weather_file(self, weather_file_id: WeatherID):
-        self.weather_files.add(weather_file_id)
+        if weather_file_id not in self.weather_files:
+            self.weather_files.add(weather_file_id)
+        else:
+            raise DuplicateWeatherFile(description=f"Weather file with ID {weather_file_id} already present in project!")
 
     def remove_weather_file(self, weather_file_id: WeatherID):
-        self.weather_files.remove(weather_file_id)
+        try:
+            self.weather_files.remove(weather_file_id)
+        except KeyError:
+            raise UnknownWeatherFile(description=f"Cannot delete weather file {weather_file_id} - no such file")
 
     def add_shape_metadata(self, shape_id: ShapeID, shape_color: ShapeColor):
         self.shapes[shape_id] = shape_color
 
     def remove_shape_metadata(self, shape_id: ShapeID):
-        del self.shapes[shape_id]
+        try:
+            del self.shapes[shape_id]
+        except KeyError:
+            raise UnknownShape(description=f"Cannot delete shape {shape_id} - no such shape!")
 
     def map_shape_to_hydrus(self, shape_id: ShapeID, hydrus_id: HydrusID):
         if not self.contains_shape(shape_id):
-            raise UnknownShape(f"No shape {shape_id} in project {self.project_id}")
+            raise UnknownShape(description=f"Cannot map shape {shape_id} - no such shape")
         if not self.contains_hydrus_model(hydrus_id):
-            raise UnknownHydrusModel(f"No Hydrus model {hydrus_id} in project {self.project_id}")
+            raise UnknownHydrusModel(description=f"Cannot map shape {shape_id} to Hydrus model {hydrus_id} "
+                                                 f"- no such Hydrus model")
         self.shapes_to_hydrus[shape_id] = hydrus_id
 
     def map_shape_to_manual_value(self, shape_id: ShapeID, value: float):
         if not self.contains_shape(shape_id):
-            raise UnknownShape(f"No shape {shape_id} in project {self.project_id}")
+            raise UnknownShape(description=f"Cannot map shape {shape_id} - no such shape")
         self.shapes_to_hydrus[shape_id] = value
 
     def map_hydrus_to_weather(self, hydrus_id: HydrusID, weather_id: WeatherID):
         if not self.contains_hydrus_model(hydrus_id):
-            raise UnknownHydrusModel(f"No Hydrus model {hydrus_id} in project {self.project_id}")
+            raise UnknownHydrusModel(description=f"Cannot assign weather file to Hydrus model {hydrus_id} "
+                                                 f"- no such Hydrus model")
         if not self.contains_weather_model(weather_id):
-            raise UnknownShape(f"No weather file {weather_id} in project {self.project_id}")
+            raise UnknownWeatherFile(description=f"Cannot assign weather file {weather_id} to Hydrus model "
+                                                 f"- no such weather file")
         self.shapes_to_hydrus[hydrus_id] = weather_id
 
     def remove_shape_mapping(self, shape_id: ShapeID):
         if not self.contains_shape(shape_id):
-            raise UnknownShape(f"No shape {shape_id} in project {self.project_id}")
+            raise UnknownShape(description=f"Cannot unmap shape {shape_id} - no such shape")
         del self.shapes_to_hydrus[shape_id]
 
     def remove_hydrus_weather_mapping(self, hydrus_id: HydrusID):
         if not self.contains_hydrus_model(hydrus_id):
-            raise UnknownHydrusModel(f"No Hydrus model {hydrus_id} in project {self.project_id}")
+            raise UnknownHydrusModel(description=f"Cannot unassign weather file from Hydrus model {hydrus_id} "
+                                                 f"- no such Hydrus model")
         del self.hydrus_to_weather[hydrus_id]
 
     def contains_hydrus_model(self, hydrus_id: HydrusID) -> bool:

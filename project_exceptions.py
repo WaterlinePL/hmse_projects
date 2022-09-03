@@ -1,28 +1,34 @@
 from werkzeug.exceptions import HTTPException
 
 
-class ProjectNotFound(Exception):
-    pass
+class ProjectNotFound(HTTPException):
+    code = 404
+    description = "Project not found!"
 
 
-class ProjectNotSelected(Exception):
-    pass
+class ProjectNotSelected(HTTPException):
+    code = 403
+    description = "Project not selected!"
 
 
-class UnknownHydrusModel(Exception):
-    pass
+class UnknownHydrusModel(HTTPException):
+    code = 404
+    description = "Unknown Hydrus model!"
 
 
-class UnknownModflowModel(Exception):
-    pass
+class UnknownModflowModel(HTTPException):
+    code = 404
+    description = "Unknown Modflow model!"
 
 
-class UnknownShape(Exception):
-    pass
+class UnknownShape(HTTPException):
+    code = 404
+    description = "Unknown shape!"
 
 
-class UnknownWeatherFile(Exception):
-    pass
+class UnknownWeatherFile(HTTPException):
+    code = 404
+    description = "Unknown weather file!"
 
 
 class DuplicateHydrusModel(HTTPException):
@@ -35,6 +41,6 @@ class DuplicateModflowModel(HTTPException):
     description = "Modflow model with same ID already present in project"
 
 
-class DuplicateWeatherFileInProject(HTTPException):
+class DuplicateWeatherFile(HTTPException):
     code = 409
     description = "Weather file with same ID already present in project"
