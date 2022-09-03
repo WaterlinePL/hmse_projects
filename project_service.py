@@ -22,7 +22,7 @@ def save_or_update_metadata(metadata: ProjectMetadata) -> None:
 
 
 def delete(project_id: ProjectID) -> None:
-    project_dao.delete(project_id)
+    project_dao.delete_project(project_id)
 
 
 def download_project(project_id: ProjectID) -> FileStorage:
@@ -103,8 +103,8 @@ def save_or_update_shape_metadata(project_id: ProjectID, shape_id: ShapeID, shap
     metadata.add_shape_metadata(shape_id, shape_color)
 
 
-def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray) -> None:
-    project_dao.save_or_update_shape(project_id, shape_id, shape_mask)
+def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str) -> None:
+    project_dao.save_or_update_shape(project_id, shape_id, shape_mask, color)
 
 
 def delete_shape(project_id: ProjectID, shape_id: ShapeID) -> None:

@@ -61,7 +61,11 @@ class ProjectDao(ABC):
         ...
 
     @abstractmethod
-    def save_or_update_shape(self, project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray) -> None:
+    def save_or_update_shape(self,
+                             project_id: ProjectID,
+                             shape_id: ShapeID,
+                             shape_mask: np.ndarray,
+                             color: str) -> None:
         ...
 
     @abstractmethod
@@ -130,7 +134,11 @@ class ProjectMock(ProjectDao):
     def delete_weather_file(self, project_id: ProjectID, weather_file_id: WeatherID) -> None:
         pass
 
-    def save_or_update_shape(self, project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray) -> None:
+    def save_or_update_shape(self,
+                             project_id: ProjectID,
+                             shape_id: ShapeID,
+                             shape_mask: np.ndarray,
+                             color: str) -> None:
         pass
 
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
