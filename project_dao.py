@@ -142,7 +142,12 @@ class ProjectMock(ProjectDao):
         pass
 
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
-        pass
+        mask = np.zeros((10, 10))
+        if shape_id == 'shape1':
+            mask[:6, :6] = 1
+        elif shape_id == 'shape2':
+            mask[6:10, 6:10] = 1
+        return mask
 
     def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
         pass

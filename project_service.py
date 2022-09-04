@@ -93,8 +93,8 @@ def wipe_all_shapes(project_id: ProjectID) -> None:
 def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
     metadata = project_dao.read_metadata(project_id)
     shapes = {}
-    for shape_id in metadata.shapes:
-        shapes[shape_id] = project_dao.get_shape(project_id, shape_id)
+    for shape_id in metadata.shapes.keys():
+        shapes[shape_id] = project_dao.get_shape(project_id, shape_id).tolist()
     return shapes
 
 
