@@ -85,8 +85,8 @@ class ProjectMock(ProjectDao):
                                finished=True,
                                lat=10.10,
                                long=34.34,
-                               start_date='01-01-2020',
-                               end_date='01-01-2022',
+                               start_date='2020-01-01',
+                               end_date='2022-01-01',
                                spin_up=365,
                                modflow_metadata=ModflowMetadata(
                                    modflow_id="cekcyn-test",
