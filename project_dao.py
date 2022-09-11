@@ -83,6 +83,10 @@ class ProjectDao(ABC):
     def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
         ...
 
+    @abstractmethod
+    def add_modflow_rch_shapes(self, project_id: ProjectID, rch_shapes: List[np.ndarray]):
+        ...
+
 
 class ProjectMock(ProjectDao):
 

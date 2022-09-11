@@ -1,11 +1,14 @@
+import random
 from typing import List, Dict
 
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
+from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow import modflow_utils
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_dao import project_dao
 from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
+from hmse_simulations.hmse_projects.shape_utils import generate_random_html_color
 from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID, ShapeColor
 
 
@@ -25,7 +28,7 @@ def delete(project_id: ProjectID) -> None:
     project_dao.delete_project(project_id)
 
 
-def download_project(project_id: ProjectID) -> FileStorage:
+def download_project(project_id: ProjectID):
     return project_dao.download_project(project_id)
 
 
@@ -54,11 +57,13 @@ def set_modflow_model(project_id: ProjectID, modflow_model: FileStorage) -> Modf
     if metadata.modflow_metadata:
         project_dao.delete_modflow_model(project_id, metadata.modflow_metadata.modflow_id)
 
-    modflow_id = modflow_model.filename  # FIXME: perhaps FileStorage.filename
+    modflow_id = modflow_model.filename
     metadata.set_modflow_metadata(modflow_id)
     project_dao.add_modflow_model(project_id, modflow_id, modflow_model)
     project_dao.save_or_update_metadata(metadata)
-    # return modflow_service.analyze_model()    # TODO
+    model_metadata, rch_shapes = modflow_utils.extract_metadata(modflow_model)
+    project_dao.add_modflow_rch_shapes(project_id, rch_shapes)
+    return model_metadata
 
 
 def delete_modflow_model(project_id: ProjectID):
@@ -98,10 +103,10 @@ def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
     return shapes
 
 
-def get_rch_shapes(project_id: ProjectID):
-    rch_shapes = project_dao.get_rch_shapes(project_id)
+def add_rch_shapes(project_id: ProjectID):
+    rch_shapes = project_dao.add_rch_shapes(project_id)
     for shape_id, mask in rch_shapes.items():
-        project_dao.save_or_update_shape(project_id, shape_id, mask, "red")  # TODO: random color
+        project_dao.save_or_update_shape(project_id, shape_id, mask, generate_random_html_color())  # TODO: random color
     return {
         "shapeIds": {shape_id: "red" for shape_id in rch_shapes.keys()},
         "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in rch_shapes.items()},
@@ -113,8 +118,11 @@ def save_or_update_shape_metadata(project_id: ProjectID, shape_id: ShapeID, shap
     metadata.add_shape_metadata(shape_id, shape_color)
 
 
-def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str) -> None:
-    project_dao.save_or_update_shape(project_id, shape_id, shape_mask, color)
+def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str,
+                         new_shape_id: ShapeID) -> None:
+    if shape_id != new_shape_id:
+        project_dao.delete_shape(project_id, shape_id)
+    project_dao.save_or_update_shape(project_id, new_shape_id, shape_mask, color)
 
 
 def delete_shape(project_id: ProjectID, shape_id: ShapeID) -> None:
