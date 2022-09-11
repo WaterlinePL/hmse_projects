@@ -98,6 +98,16 @@ def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
     return shapes
 
 
+def get_rch_shapes(project_id: ProjectID):
+    rch_shapes = project_dao.get_rch_shapes(project_id)
+    for shape_id, mask in rch_shapes.items():
+        project_dao.save_or_update_shape(project_id, shape_id, mask, "red")  # TODO: random color
+    return {
+        "shapeIds": {shape_id: "red" for shape_id in rch_shapes.keys()},
+        "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in rch_shapes.items()},
+    }
+
+
 def save_or_update_shape_metadata(project_id: ProjectID, shape_id: ShapeID, shape_color: ShapeColor):
     metadata = project_dao.read_metadata(project_id)
     metadata.add_shape_metadata(shape_id, shape_color)

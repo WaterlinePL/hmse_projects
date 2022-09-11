@@ -1,8 +1,10 @@
 # Interface
+import shutil
 from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
+from flask import send_file
 from werkzeug.datastructures import FileStorage
 
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
@@ -69,6 +71,11 @@ class ProjectDao(ABC):
         ...
 
     @abstractmethod
+    def get_rch_shapes(self,
+                       project_id: ProjectID):
+        ...
+
+    @abstractmethod
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
         ...
 
@@ -78,6 +85,16 @@ class ProjectDao(ABC):
 
 
 class ProjectMock(ProjectDao):
+
+    def get_rch_shapes(self, project_id: ProjectID):
+        shape1 = np.zeros((10, 10))
+        shape1[7:10, :4] = 1
+        shape2 = np.zeros((10, 10))
+        shape2[:4, 7:10] = 1
+        return {
+            "rchShape1": shape1,
+            "rchShape2": shape2
+        }
 
     def read_metadata(self, project_id: ProjectID) -> ProjectMetadata:
         return ProjectMetadata(project_id,
@@ -114,7 +131,8 @@ class ProjectMock(ProjectDao):
         pass
 
     def download_project(self, project_id: ProjectID) -> FileStorage:
-        pass
+        # return shutil.make_archive(project_dir, 'zip', project_dir)
+        return "project.zip"
 
     def add_hydrus_model(self, project_id: ProjectID, hydrus_id: ModflowID, archive: FileStorage) -> None:
         pass
