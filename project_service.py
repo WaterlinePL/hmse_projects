@@ -4,6 +4,7 @@ from typing import List, Dict
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
+from hmse_simulations.hmse_projects.hmse_hydrological_models.hydrus import hydrus_utils
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow import modflow_utils
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_dao import project_dao
@@ -37,6 +38,7 @@ def is_finished(project_id: ProjectID) -> bool:
 
 
 def add_hydrus_model(project_id: ProjectID, hydrus_model: FileStorage):
+    hydrus_utils.validate_model(hydrus_model)
     metadata = project_dao.read_metadata(project_id)
     hydrus_id = hydrus_model.name
     metadata.add_hydrus_model(hydrus_id)
@@ -120,8 +122,18 @@ def save_or_update_shape_metadata(project_id: ProjectID, shape_id: ShapeID, shap
 
 def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str,
                          new_shape_id: ShapeID) -> None:
+    metadata = project_dao.read_metadata(project_id)
     if shape_id != new_shape_id:
+        metadata.add_shape_metadata(new_shape_id, color)
         project_dao.delete_shape(project_id, shape_id)
+
+        current_shape_mapping = metadata.shapes_to_hydrus.get(shape_id)
+        if current_shape_mapping is not None:
+            if isinstance(current_shape_mapping, float):
+                metadata.map_shape_to_manual_value(new_shape_id, current_shape_mapping)
+            else:
+                metadata.map_shape_to_hydrus(new_shape_id, current_shape_mapping)
+            metadata.remove_shape_mapping(shape_id)
     project_dao.save_or_update_shape(project_id, new_shape_id, shape_mask, color)
 
 
