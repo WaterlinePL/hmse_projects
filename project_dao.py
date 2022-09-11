@@ -1,13 +1,10 @@
 # Interface
-import shutil
 from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
-from flask import send_file
 from werkzeug.datastructures import FileStorage
 
-from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
 from hmse_simulations.hmse_projects.typing_help import ProjectID, ModflowID, HydrusID, WeatherID, ShapeID
 
@@ -88,91 +85,4 @@ class ProjectDao(ABC):
         ...
 
 
-class ProjectMock(ProjectDao):
-
-    def get_rch_shapes(self, project_id: ProjectID):
-        shape1 = np.zeros((10, 10))
-        shape1[7:10, :4] = 1
-        shape2 = np.zeros((10, 10))
-        shape2[:4, 7:10] = 1
-        return {
-            "rchShape1": shape1,
-            "rchShape2": shape2
-        }
-
-    def read_metadata(self, project_id: ProjectID) -> ProjectMetadata:
-        return ProjectMetadata(project_id,
-                               project_name=project_id,
-                               finished=True,
-                               lat=10.10,
-                               long=34.34,
-                               start_date='2020-01-01',
-                               end_date='2022-01-01',
-                               spin_up=365,
-                               modflow_metadata=ModflowMetadata(
-                                   modflow_id="cekcyn-test",
-                                   rows=10,
-                                   cols=10,
-                                   grid_unit='meter',
-                                   row_cells=[50] * 10,
-                                   col_cells=[20] * 10),
-                               hydrus_models={'las', 'trawa'},
-                               weather_files={'weather1', 'weather2'},
-                               shapes={'shape1': 'green',
-                                       'shape2': 'blue'}
-                               )
-
-    def read_all_metadata(self) -> List[ProjectMetadata]:
-        return [ProjectMetadata("sample-project")]
-
-    def read_all_names(self) -> List[ProjectID]:
-        return ["sample-project"]
-
-    def save_or_update_metadata(self, metadata: ProjectMetadata) -> None:
-        pass
-
-    def delete_project(self, project_id: ProjectID) -> None:
-        pass
-
-    def download_project(self, project_id: ProjectID) -> FileStorage:
-        # return shutil.make_archive(project_dir, 'zip', project_dir)
-        return "project.zip"
-
-    def add_hydrus_model(self, project_id: ProjectID, hydrus_id: ModflowID, archive: FileStorage) -> None:
-        pass
-
-    def add_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID, archive: FileStorage) -> None:
-        pass
-
-    def delete_hydrus_model(self, project_id: ProjectID, hydrus_id: HydrusID) -> None:
-        pass
-
-    def delete_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID) -> None:
-        pass
-
-    def add_weather_file(self, project_id: ProjectID, weather_id: WeatherID, weather_file: FileStorage) -> None:
-        pass
-
-    def delete_weather_file(self, project_id: ProjectID, weather_file_id: WeatherID) -> None:
-        pass
-
-    def save_or_update_shape(self,
-                             project_id: ProjectID,
-                             shape_id: ShapeID,
-                             shape_mask: np.ndarray,
-                             color: str) -> None:
-        pass
-
-    def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
-        mask = np.zeros((10, 10))
-        if shape_id == 'shape1':
-            mask[:6, :6] = 1
-        elif shape_id == 'shape2':
-            mask[6:10, 6:10] = 1
-        return mask
-
-    def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
-        pass
-
-
-project_dao = ProjectMock()
+project_dao = ProjectDao()
