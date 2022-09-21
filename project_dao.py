@@ -4,7 +4,6 @@ import logging
 import os
 import shutil
 from typing import List
-from zipfile import ZipFile
 
 import numpy as np
 from werkzeug.datastructures import FileStorage
