@@ -11,6 +11,17 @@ class ProjectNotSelected(HTTPException):
     description = "Project not selected!"
 
 
+class ProjectSimulationNotFinishedError(HTTPException):
+    code = 403
+    description = "Cannot download - project simulation not finished!"
+
+
+# TODO?
+class ProjectSimulationInProgressError(HTTPException):
+    code = 403
+    description = "Cannot download - project simulation not finished!"
+
+
 class UnknownHydrusModel(HTTPException):
     code = 404
     description = "Unknown Hydrus model!"
@@ -19,6 +30,11 @@ class UnknownHydrusModel(HTTPException):
 class UnknownModflowModel(HTTPException):
     code = 404
     description = "Unknown Modflow model!"
+
+
+class UnsetModflowModelError(HTTPException):
+    code = 409
+    description = "Modflow model is not set!"
 
 
 class UnknownShape(HTTPException):

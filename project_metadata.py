@@ -1,3 +1,4 @@
+import copy
 from dataclasses import dataclass, field
 from typing import List, Optional, Set, Dict, Union
 
@@ -20,7 +21,7 @@ class ProjectMetadata:
     long: Optional[float] = None  # longitude of model
     start_date: Optional[str] = None  # start date of the simulation (YYYY-mm-dd)
     end_date: Optional[str] = None  # end date of the simulation (YYYY-mm-dd)
-    spin_up: Optional[int] = None  # how many days of hydrus simulation should be ignored
+    spin_up: int = 0  # how many days of hydrus simulation should be ignored
     modflow_metadata: Optional[ModflowMetadata] = None
     hydrus_models: Set[HydrusID] = field(default_factory=set)  # list of names of folders containing the hydrus models
     weather_files: Set[WeatherID] = field(default_factory=set)
@@ -28,6 +29,10 @@ class ProjectMetadata:
 
     shapes_to_hydrus: Dict[ShapeID, Union[HydrusID, float]] = field(default_factory=dict)
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
+
+    def __post_init__(self):
+        self.hydrus_models = set(self.hydrus_models)
+        self.weather_files = set(self.weather_files)
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):
         self.modflow_metadata = modflow_metadata
@@ -88,18 +93,20 @@ class ProjectMetadata:
         if not self.contains_weather_model(weather_id):
             raise UnknownWeatherFile(description=f"Cannot assign weather file {weather_id} to Hydrus model "
                                                  f"- no such weather file")
-        self.shapes_to_hydrus[hydrus_id] = weather_id
+        self.hydrus_to_weather[hydrus_id] = weather_id
 
     def remove_shape_mapping(self, shape_id: ShapeID):
         if not self.contains_shape(shape_id):
             raise UnknownShape(description=f"Cannot unmap shape {shape_id} - no such shape")
-        del self.shapes_to_hydrus[shape_id]
+        if shape_id in self.shapes_to_hydrus:
+            del self.shapes_to_hydrus[shape_id]
 
     def remove_hydrus_weather_mapping(self, hydrus_id: HydrusID):
         if not self.contains_hydrus_model(hydrus_id):
             raise UnknownHydrusModel(description=f"Cannot unassign weather file from Hydrus model {hydrus_id} "
                                                  f"- no such Hydrus model")
-        del self.hydrus_to_weather[hydrus_id]
+        if hydrus_id in self.hydrus_to_weather:
+            del self.hydrus_to_weather[hydrus_id]
 
     def contains_hydrus_model(self, hydrus_id: HydrusID) -> bool:
         return hydrus_id in self.hydrus_models
@@ -113,10 +120,10 @@ class ProjectMetadata:
     def contains_shape(self, shape_id: ShapeID) -> bool:
         return shape_id in self.shapes
 
-    def to_json_str(self):
+    def to_json_response(self):
         self.hydrus_models = list(self.hydrus_models)
         self.weather_files = list(self.weather_files)
-        serialized = jsonify(self)
+        serialized = copy.deepcopy(self)
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
         return serialized

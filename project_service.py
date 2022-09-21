@@ -1,12 +1,15 @@
 import random
+import tempfile
 from typing import List, Dict
 
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
+from hmse_simulations.hmse_projects.hmse_hydrological_models.hydrus import hydrus_utils
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow import modflow_utils
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_dao import project_dao
+from hmse_simulations.hmse_projects.project_exceptions import ProjectSimulationNotFinishedError
 from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
 from hmse_simulations.hmse_projects.shape_utils import generate_random_html_color
 from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID, ShapeColor
@@ -29,6 +32,8 @@ def delete(project_id: ProjectID) -> None:
 
 
 def download_project(project_id: ProjectID):
+    if not project_dao.read_metadata(project_id).finished:
+        raise ProjectSimulationNotFinishedError()
     return project_dao.download_project(project_id)
 
 
@@ -36,12 +41,16 @@ def is_finished(project_id: ProjectID) -> bool:
     return project_dao.read_metadata(project_id).finished
 
 
-def add_hydrus_model(project_id: ProjectID, hydrus_model: FileStorage):
+def add_hydrus_model(project_id: ProjectID, hydrus_model: FileStorage) -> HydrusID:
     metadata = project_dao.read_metadata(project_id)
-    hydrus_id = hydrus_model.name
-    metadata.add_hydrus_model(hydrus_id)
-    project_dao.add_hydrus_model(project_id, hydrus_id, hydrus_model)
-    project_dao.save_or_update_metadata(metadata)
+    hydrus_id = hydrus_model.filename[:-4]  # .zip file
+
+    with tempfile.TemporaryDirectory() as validation_dir:
+        hydrus_utils.validate_model(hydrus_model, validation_dir)
+        project_dao.add_hydrus_model(project_id, hydrus_id, validation_dir)
+        metadata.add_hydrus_model(hydrus_id)
+        project_dao.save_or_update_metadata(metadata)
+        return hydrus_id
 
 
 def delete_hydrus_model(project_id: ProjectID, hydrus_id: HydrusID):
@@ -57,13 +66,14 @@ def set_modflow_model(project_id: ProjectID, modflow_model: FileStorage) -> Modf
     if metadata.modflow_metadata:
         project_dao.delete_modflow_model(project_id, metadata.modflow_metadata.modflow_id)
 
-    modflow_id = modflow_model.filename
-    metadata.set_modflow_metadata(modflow_id)
-    project_dao.add_modflow_model(project_id, modflow_id, modflow_model)
-    project_dao.save_or_update_metadata(metadata)
-    model_metadata, rch_shapes = modflow_utils.extract_metadata(modflow_model)
-    project_dao.add_modflow_rch_shapes(project_id, rch_shapes)
-    return model_metadata
+    modflow_id = modflow_model.filename[:-4]  # .zip file
+    with tempfile.TemporaryDirectory() as validation_dir:
+        model_metadata, rch_shapes = modflow_utils.extract_metadata(modflow_model, validation_dir)
+        project_dao.add_modflow_model(project_id, modflow_id, validation_dir)
+        metadata.set_modflow_metadata(model_metadata)
+        project_dao.save_or_update_metadata(metadata)
+        project_dao.add_modflow_rch_shapes(project_id, rch_shapes)
+        return model_metadata
 
 
 def delete_modflow_model(project_id: ProjectID):
@@ -74,12 +84,13 @@ def delete_modflow_model(project_id: ProjectID):
     project_dao.save_or_update_metadata(metadata)
 
 
-def add_weather_file(project_id: ProjectID, weather_file: FileStorage):
+def add_weather_file(project_id: ProjectID, weather_file: FileStorage) -> WeatherID:
     metadata = project_dao.read_metadata(project_id)
-    weather_id = weather_file.name
+    weather_id = weather_file.filename[:-4]  # .csv file
     metadata.add_weather_file(weather_id)
     project_dao.add_weather_file(project_id, weather_id, weather_file)
     project_dao.save_or_update_metadata(metadata)
+    return weather_id
 
 
 def delete_weather_file(project_id: ProjectID, weather_id: HydrusID):
@@ -104,25 +115,33 @@ def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
 
 
 def add_rch_shapes(project_id: ProjectID):
-    rch_shapes = project_dao.add_rch_shapes(project_id)
+    rch_shapes = project_dao.get_rch_shapes(project_id)
     for shape_id, mask in rch_shapes.items():
-        project_dao.save_or_update_shape(project_id, shape_id, mask, generate_random_html_color())  # TODO: random color
+        project_dao.save_or_update_shape(project_id, shape_id, mask)
     return {
-        "shapeIds": {shape_id: "red" for shape_id in rch_shapes.keys()},
+        "shapeIds": {shape_id: generate_random_html_color() for shape_id in rch_shapes.keys()},
         "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in rch_shapes.items()},
     }
 
 
-def save_or_update_shape_metadata(project_id: ProjectID, shape_id: ShapeID, shape_color: ShapeColor):
-    metadata = project_dao.read_metadata(project_id)
-    metadata.add_shape_metadata(shape_id, shape_color)
-
-
 def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str,
                          new_shape_id: ShapeID) -> None:
-    if shape_id != new_shape_id:
+    metadata = project_dao.read_metadata(project_id)
+    if metadata.contains_shape(shape_id) and shape_id != new_shape_id:
         project_dao.delete_shape(project_id, shape_id)
-    project_dao.save_or_update_shape(project_id, new_shape_id, shape_mask, color)
+        current_shape_mapping = metadata.shapes_to_hydrus.get(shape_id)
+
+        if current_shape_mapping is not None:
+            if isinstance(current_shape_mapping, float):
+                metadata.map_shape_to_manual_value(new_shape_id, current_shape_mapping)
+            else:
+                metadata.map_shape_to_hydrus(new_shape_id, current_shape_mapping)
+            metadata.remove_shape_mapping(shape_id)
+        metadata.remove_shape_metadata(shape_id)
+
+    metadata.add_shape_metadata(new_shape_id, color)
+    project_dao.save_or_update_shape(project_id, new_shape_id, shape_mask)
+    project_dao.save_or_update_metadata(metadata)
 
 
 def delete_shape(project_id: ProjectID, shape_id: ShapeID) -> None:

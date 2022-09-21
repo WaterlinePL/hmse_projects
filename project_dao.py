@@ -1,4 +1,5 @@
 # Interface
+import os
 import shutil
 from abc import ABC, abstractmethod
 from typing import List
@@ -39,11 +40,15 @@ class ProjectDao(ABC):
         ...
 
     @abstractmethod
-    def add_hydrus_model(self, project_id: ProjectID, hydrus_id: ModflowID, archive: FileStorage) -> None:
+    def add_hydrus_model(self, project_id: ProjectID,
+                         hydrus_id: HydrusID,
+                         validated_model_path: os.PathLike) -> None:
         ...
 
     @abstractmethod
-    def add_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID, archive: FileStorage) -> None:
+    def add_modflow_model(self, project_id: ProjectID,
+                          modflow_id: ModflowID,
+                          validated_model_path: os.PathLike) -> None:
         ...
 
     @abstractmethod
@@ -66,13 +71,11 @@ class ProjectDao(ABC):
     def save_or_update_shape(self,
                              project_id: ProjectID,
                              shape_id: ShapeID,
-                             shape_mask: np.ndarray,
-                             color: str) -> None:
+                             shape_mask: np.ndarray) -> None:
         ...
 
     @abstractmethod
-    def get_rch_shapes(self,
-                       project_id: ProjectID):
+    def get_rch_shapes(self, project_id: ProjectID):
         ...
 
     @abstractmethod
@@ -89,6 +92,9 @@ class ProjectDao(ABC):
 
 
 class ProjectMock(ProjectDao):
+
+    def add_modflow_rch_shapes(self, project_id: ProjectID, rch_shapes: List[np.ndarray]):
+        pass
 
     def get_rch_shapes(self, project_id: ProjectID):
         shape1 = np.zeros((10, 10))
@@ -135,7 +141,6 @@ class ProjectMock(ProjectDao):
         pass
 
     def download_project(self, project_id: ProjectID) -> FileStorage:
-        # return shutil.make_archive(project_dir, 'zip', project_dir)
         return "project.zip"
 
     def add_hydrus_model(self, project_id: ProjectID, hydrus_id: ModflowID, archive: FileStorage) -> None:
@@ -159,8 +164,7 @@ class ProjectMock(ProjectDao):
     def save_or_update_shape(self,
                              project_id: ProjectID,
                              shape_id: ShapeID,
-                             shape_mask: np.ndarray,
-                             color: str) -> None:
+                             shape_mask: np.ndarray) -> None:
         pass
 
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
