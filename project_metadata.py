@@ -1,15 +1,14 @@
 import copy
-import json
 from dataclasses import dataclass, field
 from typing import Optional, Set, Dict, Union
-
-# Is represented as .json file in store, accessed via dao
-from flask import jsonify
 
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
 from hmse_simulations.hmse_projects.typing_help import HydrusID, ModflowID, WeatherID, ShapeID, ProjectID, ShapeColor
+
+
+# Is represented as .json file in store, accessed via dao
 
 
 @dataclass
@@ -57,7 +56,8 @@ class ProjectMetadata:
         if weather_file_id not in self.weather_files:
             self.weather_files.add(weather_file_id)
         else:
-            raise DuplicateWeatherFile(description=f"Weather file with ID {weather_file_id} already present in project!")
+            raise DuplicateWeatherFile(
+                description=f"Weather file with ID {weather_file_id} already present in project!")
 
     def remove_weather_file(self, weather_file_id: WeatherID):
         try:

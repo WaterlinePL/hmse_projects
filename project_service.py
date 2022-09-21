@@ -1,4 +1,3 @@
-import random
 import tempfile
 from typing import List, Dict
 
@@ -12,7 +11,7 @@ from hmse_simulations.hmse_projects.project_dao import project_dao
 from hmse_simulations.hmse_projects.project_exceptions import ProjectSimulationNotFinishedError
 from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
 from hmse_simulations.hmse_projects.shape_utils import generate_random_html_color
-from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID, ShapeColor
+from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID
 
 
 def get(project_id: ProjectID) -> ProjectMetadata:
@@ -43,7 +42,7 @@ def is_finished(project_id: ProjectID) -> bool:
 
 def add_hydrus_model(project_id: ProjectID, hydrus_model: FileStorage) -> HydrusID:
     metadata = project_dao.read_metadata(project_id)
-    hydrus_id = hydrus_model.filename[:-4]    # .zip file
+    hydrus_id = hydrus_model.filename[:-4]  # .zip file
 
     with tempfile.TemporaryDirectory() as validation_dir:
         hydrus_utils.validate_model(hydrus_model, validation_dir)
@@ -66,7 +65,7 @@ def set_modflow_model(project_id: ProjectID, modflow_model: FileStorage) -> Modf
     if metadata.modflow_metadata:
         project_dao.delete_modflow_model(project_id, metadata.modflow_metadata.modflow_id)
 
-    modflow_id = modflow_model.filename[:-4]    # .zip file
+    modflow_id = modflow_model.filename[:-4]  # .zip file
     with tempfile.TemporaryDirectory() as validation_dir:
         model_metadata, rch_shapes = modflow_utils.extract_metadata(modflow_model, validation_dir)
         project_dao.add_modflow_model(project_id, modflow_id, validation_dir)
@@ -86,7 +85,7 @@ def delete_modflow_model(project_id: ProjectID):
 
 def add_weather_file(project_id: ProjectID, weather_file: FileStorage) -> WeatherID:
     metadata = project_dao.read_metadata(project_id)
-    weather_id = weather_file.filename[:-4]    # .csv file
+    weather_id = weather_file.filename[:-4]  # .csv file
     metadata.add_weather_file(weather_id)
     project_dao.add_weather_file(project_id, weather_id, weather_file)
     project_dao.save_or_update_metadata(metadata)
