@@ -28,6 +28,9 @@ class ProjectMetadata:
     weather_files: Set[WeatherID] = field(default_factory=set)
     shapes: Dict[ShapeID, ShapeColor] = field(default_factory=dict)
 
+    hydrus_durations: Dict[HydrusID, int] = field(default_factory=dict)
+    weather_files_durations: Dict[WeatherID, int] = field(default_factory=dict)
+
     shapes_to_hydrus: Dict[ShapeID, Union[HydrusID, float]] = field(default_factory=dict)
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
 
