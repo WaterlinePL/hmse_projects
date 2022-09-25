@@ -113,7 +113,6 @@ class ProjectMock(ProjectDao):
                                lat=10.10,
                                long=34.34,
                                start_date='2020-01-01',
-                               end_date='2022-01-01',
                                spin_up=365,
                                modflow_metadata=ModflowMetadata(
                                    modflow_id="cekcyn-test",
@@ -121,7 +120,9 @@ class ProjectMock(ProjectDao):
                                    cols=10,
                                    grid_unit='meter',
                                    row_cells=[50] * 10,
-                                   col_cells=[20] * 10),
+                                   col_cells=[20] * 10,
+                                   duration=90
+                               ),
                                hydrus_models={'las', 'trawa'},
                                weather_files={'weather1', 'weather2'},
                                shapes={'shape1': 'green',

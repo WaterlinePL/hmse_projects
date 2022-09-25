@@ -1,14 +1,15 @@
 import copy
+import datetime
 from dataclasses import dataclass, field
-from typing import List, Optional, Set, Dict, Union
-
-# Is represented as .json file in store, accessed via dao
-from flask import jsonify
+from typing import Optional, Set, Dict, Union
 
 from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from hmse_simulations.hmse_projects.project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
 from hmse_simulations.hmse_projects.typing_help import HydrusID, ModflowID, WeatherID, ShapeID, ProjectID, ShapeColor
+
+
+# Is represented as .json file in store, accessed via dao
 
 
 @dataclass
@@ -20,7 +21,7 @@ class ProjectMetadata:
     lat: Optional[float] = None  # latitude of model
     long: Optional[float] = None  # longitude of model
     start_date: Optional[str] = None  # start date of the simulation (YYYY-mm-dd)
-    end_date: Optional[str] = None  # end date of the simulation (YYYY-mm-dd)
+    # end_date: Optional[str] = None  # end date of the simulation (YYYY-mm-dd)
     spin_up: int = 0  # how many days of hydrus simulation should be ignored
     modflow_metadata: Optional[ModflowMetadata] = None
     hydrus_models: Set[HydrusID] = field(default_factory=set)  # list of names of folders containing the hydrus models
@@ -33,6 +34,14 @@ class ProjectMetadata:
     def __post_init__(self):
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
+
+    def calculate_end_date(self):
+        if self.start_date is None:
+            return None
+
+        start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+        duration = datetime.timedelta(days=self.modflow_metadata.duration)
+        return (start + duration).strftime("%Y-%m-%d")
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):
         self.modflow_metadata = modflow_metadata
@@ -56,7 +65,8 @@ class ProjectMetadata:
         if weather_file_id not in self.weather_files:
             self.weather_files.add(weather_file_id)
         else:
-            raise DuplicateWeatherFile(description=f"Weather file with ID {weather_file_id} already present in project!")
+            raise DuplicateWeatherFile(
+                description=f"Weather file with ID {weather_file_id} already present in project!")
 
     def remove_weather_file(self, weather_file_id: WeatherID):
         try:
