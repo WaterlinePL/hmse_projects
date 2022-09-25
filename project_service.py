@@ -1,4 +1,3 @@
-import random
 import tempfile
 from typing import List, Dict
 
@@ -12,7 +11,7 @@ from hmse_simulations.hmse_projects.project_dao import project_dao
 from hmse_simulations.hmse_projects.project_exceptions import ProjectSimulationNotFinishedError
 from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
 from hmse_simulations.hmse_projects.shape_utils import generate_random_html_color
-from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID, ShapeColor
+from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID
 
 
 def get(project_id: ProjectID) -> ProjectMetadata:

@@ -125,8 +125,10 @@ class ProjectMock(ProjectDao):
                                hydrus_models={'las', 'trawa'},
                                weather_files={'weather1', 'weather2'},
                                shapes={'shape1': 'green',
-                                       'shape2': 'blue'}
-                               )
+                                       'shape2': 'blue'},
+                               hydrus_to_weather={'las': 'weather1'},
+                               shapes_to_hydrus={'shape1': 'trawa'}
+                                )
 
     def read_all_metadata(self) -> List[ProjectMetadata]:
         return [ProjectMetadata("sample-project")]
