@@ -67,11 +67,12 @@ def set_modflow_model(project_id: ProjectID, modflow_model: FileStorage) -> Modf
 
     modflow_id = modflow_model.filename[:-4]  # .zip file
     with tempfile.TemporaryDirectory() as validation_dir:
-        model_metadata, rch_shapes = modflow_utils.extract_metadata(modflow_model, validation_dir)
+        model_metadata, extra_data = modflow_utils.extract_metadata(modflow_model, validation_dir)
         project_dao.add_modflow_model(project_id, modflow_id, validation_dir)
         metadata.set_modflow_metadata(model_metadata)
+        metadata.start_date = extra_data.start_date
         project_dao.save_or_update_metadata(metadata)
-        project_dao.add_modflow_rch_shapes(project_id, rch_shapes)
+        project_dao.add_modflow_rch_shapes(project_id, extra_data.rch_shapes)
         return model_metadata
 
 
