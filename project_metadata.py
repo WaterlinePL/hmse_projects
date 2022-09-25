@@ -36,7 +36,7 @@ class ProjectMetadata:
         self.weather_files = set(self.weather_files)
 
     def calculate_end_date(self):
-        if self.start_date is None:
+        if self.start_date is None or not self.modflow_metadata:
             return None
 
         start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
