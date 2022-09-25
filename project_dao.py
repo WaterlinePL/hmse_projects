@@ -85,8 +85,7 @@ class ProjectDao:
 
     def add_weather_file(self, project_id: ProjectID, weather_id: WeatherID, weather_file: FileStorage) -> None:
         os.makedirs(os.path.join(ProjectDao.get_project_path(project_id), 'weather'), exist_ok=True)
-        weather_file.save(f"{ProjectDao.get_weather_model_path(project_id, weather_id)}"
-                          f".{weather_file.filename.split('.')[-1]}")
+        weather_file.save(f"{ProjectDao.get_weather_model_path(project_id, weather_id)}")
 
     def delete_weather_file(self, project_id: ProjectID, weather_file_id: WeatherID) -> None:
         os.remove(ProjectDao.get_weather_model_path(project_id, f"{weather_file_id}.csv"))
