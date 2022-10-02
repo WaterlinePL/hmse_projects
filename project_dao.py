@@ -88,7 +88,7 @@ class ProjectDao:
         weather_file.save(f"{ProjectDao.get_weather_model_path(project_id, weather_id)}")
 
     def delete_weather_file(self, project_id: ProjectID, weather_file_id: WeatherID) -> None:
-        os.remove(ProjectDao.get_weather_model_path(project_id, f"{weather_file_id}.csv"))
+        os.remove(ProjectDao.get_weather_model_path(project_id, weather_file_id))
 
     def save_or_update_shape(self,
                              project_id: ProjectID,
