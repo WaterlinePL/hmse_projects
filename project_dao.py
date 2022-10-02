@@ -101,6 +101,11 @@ class ProjectDao:
         return {shape_id[:-4]: np.load(ProjectDao.get_rch_shape_filepath(project_id, shape_id[:-4]))
                 for shape_id in os.listdir(ProjectDao.get_rch_shapes_path(project_id))}
 
+    def delete_rch_shapes(self, project_id: ProjectID):
+        rch_shapes_path = ProjectDao.get_rch_shapes_path(project_id)
+        for rch_shape_id in os.listdir(rch_shapes_path):
+            os.remove(os.path.join(rch_shapes_path, rch_shape_id))
+
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
         return np.load(ProjectDao.get_shape_path(project_id, shape_id))
 
