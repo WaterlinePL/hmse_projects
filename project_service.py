@@ -67,18 +67,25 @@ def set_modflow_model(project_id: ProjectID, modflow_model: FileStorage) -> Modf
 
     modflow_id = modflow_model.filename[:-4]  # .zip file
     with tempfile.TemporaryDirectory() as validation_dir:
-        model_metadata, rch_shapes = modflow_utils.extract_metadata(modflow_model, validation_dir)
+        model_metadata, extra_data = modflow_utils.extract_metadata(modflow_model, validation_dir)
         project_dao.add_modflow_model(project_id, modflow_id, validation_dir)
         metadata.set_modflow_metadata(model_metadata)
+        metadata.start_date = extra_data.start_date
         project_dao.save_or_update_metadata(metadata)
-        project_dao.add_modflow_rch_shapes(project_id, rch_shapes)
+        project_dao.add_modflow_rch_shapes(project_id, extra_data.rch_shapes)
         return model_metadata
 
 
 def delete_modflow_model(project_id: ProjectID):
     metadata = project_dao.read_metadata(project_id)
     modflow_id = metadata.modflow_metadata.modflow_id
+
     metadata.remove_modflow_metadata()
+    wipe_all_shapes(project_id)
+    project_dao.delete_rch_shapes(project_id)
+    metadata.shapes = {}
+    metadata.shapes_to_hydrus = {}
+
     project_dao.delete_modflow_model(project_id, modflow_id)
     project_dao.save_or_update_metadata(metadata)
 
@@ -97,12 +104,6 @@ def delete_weather_file(project_id: ProjectID, weather_id: HydrusID):
     metadata.remove_weather_file(weather_id)
     project_dao.delete_weather_file(project_id, weather_id)
     project_dao.save_or_update_metadata(metadata)
-
-
-def wipe_all_shapes(project_id: ProjectID) -> None:
-    metadata = project_dao.read_metadata(project_id)
-    for shape_id in metadata.shapes:
-        project_dao.delete_shape(project_id, shape_id)
 
 
 def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
@@ -175,3 +176,9 @@ def remove_weather_hydrus_mapping(project_id: ProjectID, hydrus_id: HydrusID):
     metadata = project_dao.read_metadata(project_id)
     metadata.remove_hydrus_weather_mapping(hydrus_id)
     project_dao.save_or_update_metadata(metadata)
+
+
+def wipe_all_shapes(project_id: ProjectID) -> None:
+    metadata = project_dao.read_metadata(project_id)
+    for shape_id in metadata.shapes:
+        project_dao.delete_shape(metadata.project_id, shape_id)

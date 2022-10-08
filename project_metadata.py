@@ -1,4 +1,5 @@
 import copy
+import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Set, Dict, Union
 
@@ -20,12 +21,15 @@ class ProjectMetadata:
     lat: Optional[float] = None  # latitude of model
     long: Optional[float] = None  # longitude of model
     start_date: Optional[str] = None  # start date of the simulation (YYYY-mm-dd)
-    end_date: Optional[str] = None  # end date of the simulation (YYYY-mm-dd)
+    # end_date: Optional[str] = None  # end date of the simulation (YYYY-mm-dd)
     spin_up: int = 0  # how many days of hydrus simulation should be ignored
     modflow_metadata: Optional[ModflowMetadata] = None
     hydrus_models: Set[HydrusID] = field(default_factory=set)  # list of names of folders containing the hydrus models
     weather_files: Set[WeatherID] = field(default_factory=set)
     shapes: Dict[ShapeID, ShapeColor] = field(default_factory=dict)
+
+    hydrus_durations: Dict[HydrusID, int] = field(default_factory=dict)
+    weather_files_durations: Dict[WeatherID, int] = field(default_factory=dict)
 
     shapes_to_hydrus: Dict[ShapeID, Union[HydrusID, float]] = field(default_factory=dict)
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
@@ -33,6 +37,14 @@ class ProjectMetadata:
     def __post_init__(self):
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
+
+    def calculate_end_date(self):
+        if self.start_date is None or not self.modflow_metadata:
+            return None
+
+        start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
+        duration = datetime.timedelta(days=self.modflow_metadata.duration)
+        return (start + duration).strftime("%Y-%m-%d")
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):
         self.modflow_metadata = modflow_metadata
