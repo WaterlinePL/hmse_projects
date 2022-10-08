@@ -79,6 +79,10 @@ class ProjectDao(ABC):
         ...
 
     @abstractmethod
+    def delete_rch_shapes(self, project_id: ProjectID):
+        ...
+
+    @abstractmethod
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
         ...
 
