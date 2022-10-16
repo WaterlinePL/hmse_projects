@@ -1,0 +1,2 @@
+PrefixEndedWithSlash = str
+FilePathInBucket = str
