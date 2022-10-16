@@ -46,7 +46,7 @@ class MinIOController:
     def delete_file(self, object_location: FilePathInBucket):
         return self.minio_client.remove_object(ROOT_BUCKET, object_location)
 
-    def delete_directory(self, dir_location: FilePathInBucket):
+    def delete_directory(self, dir_location: PrefixEndedWithSlash):
         files_to_delete = [obj.object_name for obj in self.list_bucket_content(dir_location, recursive=True)]
         for file in files_to_delete:
             self.delete_file(file)
