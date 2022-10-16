@@ -10,8 +10,8 @@ from hmse_simulations.hmse_projects.minio_controller.typing_help import PrefixEn
 
 MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
-MINIO_SECURE = os.environ.get("MINIO_SECURE")
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT")
+MINIO_REGION = os.environ.get("MINIO_REGION")
 ROOT_BUCKET = os.environ.get("HMSE_MINIO_ROOT_BUCKET")
 
 
@@ -21,7 +21,7 @@ class MinIOController:
             endpoint=MINIO_ENDPOINT,
             access_key=MINIO_ACCESS_KEY,
             secret_key=MINIO_SECRET_KEY,
-            region='us-east-1'
+            region=MINIO_REGION
         )
 
     def list_bucket_content(self, name_prefix: PrefixEndedWithSlash, recursive: bool = False):
