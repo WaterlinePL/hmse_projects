@@ -35,6 +35,9 @@ class ProjectMetadata:
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
 
     def __post_init__(self):
+        if isinstance(self.modflow_metadata, dict):
+            self.modflow_metadata = ModflowMetadata(**self.modflow_metadata)
+
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
 
@@ -136,7 +139,15 @@ class ProjectMetadata:
     def to_json_response(self):
         self.hydrus_models = list(self.hydrus_models)
         self.weather_files = list(self.weather_files)
+
+        if self.modflow_metadata:
+            self.modflow_metadata = self.modflow_metadata.__dict__
+
         serialized = copy.deepcopy(self)
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
+
+        if self.modflow_metadata:
+            self.modflow_metadata = ModflowMetadata(**self.modflow_metadata)
+
         return serialized
