@@ -97,6 +97,9 @@ class ProjectDao(ABC):
 
 class ProjectMock(ProjectDao):
 
+    def delete_rch_shapes(self, project_id: ProjectID):
+        pass
+
     def add_modflow_rch_shapes(self, project_id: ProjectID, rch_shapes: List[np.ndarray]):
         pass
 
