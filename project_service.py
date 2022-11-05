@@ -145,7 +145,10 @@ def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: n
 
 
 def delete_shape(project_id: ProjectID, shape_id: ShapeID) -> None:
+    metadata = project_dao.read_metadata(project_id)
+    metadata.remove_shape_metadata(shape_id)
     project_dao.delete_shape(project_id, shape_id)
+    project_dao.save_or_update_metadata(metadata)
 
 
 def map_shape_to_hydrus(project_id: ProjectID, shape_id: ShapeID, hydrus_id: HydrusID):
@@ -182,3 +185,5 @@ def wipe_all_shapes(project_id: ProjectID) -> None:
     metadata = project_dao.read_metadata(project_id)
     for shape_id in metadata.shapes:
         project_dao.delete_shape(metadata.project_id, shape_id)
+        metadata.remove_shape_metadata(shape_id)
+    project_dao.save_or_update_metadata(metadata)
