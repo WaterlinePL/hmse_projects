@@ -58,5 +58,8 @@ class MinIOController:
             bucket_file = file.replace("\\", "/")
             self.put_file(file, f"{bucket_location_root}/{bucket_file}")
 
+    def get_root(self) -> str:
+        return ROOT_BUCKET
+
 
 minio_controller = MinIOController()

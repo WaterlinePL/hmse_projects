@@ -98,5 +98,8 @@ class ProjectDao:
             shape_id = f"rch_shape_{i + 1}.npy"
             self.save_or_update_shape(project_id, shape_id, mask)
 
+    def get_project_root(self, project_id: ProjectID) -> str:
+        return f"{minio_controller.get_root()}/projects/{project_id}"
+
 
 project_dao = ProjectDao()

@@ -136,6 +136,10 @@ class ProjectMetadata:
     def contains_shape(self, shape_id: ShapeID) -> bool:
         return shape_id in self.shapes
 
+    def get_used_hydrus_models(self) -> Set[HydrusID]:
+        return {hydrus_id for hydrus_id in self.shapes_to_hydrus.values()
+                if isinstance(hydrus_id, str)}
+
     def to_json_response(self):
         self.hydrus_models = list(self.hydrus_models)
         self.weather_files = list(self.weather_files)
