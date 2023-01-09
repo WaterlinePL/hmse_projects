@@ -1,16 +1,15 @@
 # Interface
 import os
-import shutil
 from abc import ABC, abstractmethod
 from typing import List
 
 import numpy as np
-from flask import send_file
 from werkzeug.datastructures import FileStorage
 
-from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
-from hmse_simulations.hmse_projects.typing_help import ProjectID, ModflowID, HydrusID, WeatherID, ShapeID
+from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .project_metadata import ProjectMetadata
+from .typing_help import ProjectID, WeatherID, ShapeID
+from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 
 class ProjectDao(ABC):

@@ -4,14 +4,15 @@ from typing import List, Dict
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
-from hmse_simulations.hmse_projects.hmse_hydrological_models.hydrus import hydrus_utils
-from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow import modflow_utils
-from hmse_simulations.hmse_projects.hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from hmse_simulations.hmse_projects.project_dao import project_dao
-from hmse_simulations.hmse_projects.project_exceptions import ProjectSimulationNotFinishedError
-from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
-from hmse_simulations.hmse_projects.shape_utils import generate_random_html_color
-from hmse_simulations.hmse_projects.typing_help import ProjectID, HydrusID, ShapeID, WeatherID
+from .hmse_hydrological_models.hydrus import hydrus_utils
+from .hmse_hydrological_models.modflow import modflow_utils
+from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .project_dao import project_dao
+from .project_exceptions import ProjectSimulationNotFinishedError
+from .project_metadata import ProjectMetadata
+from .shape_utils import generate_random_html_color
+from .typing_help import ProjectID, ShapeID, WeatherID
+from .hmse_hydrological_models.typing_help import HydrusID
 
 
 def get(project_id: ProjectID) -> ProjectMetadata:
