@@ -33,19 +33,19 @@ class ProjectDao:
         minio_controller.delete_directory(f"projects/{project_id}/")
 
     def download_project(self, project_id: ProjectID) -> FileStorage:
-        minio_controller.get_file(f"projects/{project_id}/{project_id}.zip")
+        return minio_controller.get_file_bytes(f"projects/{project_id}/output.zip")
 
     def add_hydrus_model(self, project_id: ProjectID,
                          hydrus_id: HydrusID,
                          validated_model_path: os.PathLike) -> None:
         minio_controller.upload_directory_to_bucket(validated_model_path,
-                                                    f"projects/{project_id}/hydrus/{hydrus_id}")  # TODO: test
+                                                    f"projects/{project_id}/hydrus/{hydrus_id}")
 
     def add_modflow_model(self, project_id: ProjectID,
                           modflow_id: ModflowID,
                           validated_model_path: os.PathLike) -> None:
         minio_controller.upload_directory_to_bucket(validated_model_path,
-                                                    f"projects/{project_id}/modflow/{modflow_id}")  # TODO: test
+                                                    f"projects/{project_id}/modflow/{modflow_id}")
 
     def delete_hydrus_model(self, project_id: ProjectID, hydrus_id: HydrusID) -> None:
         minio_controller.delete_directory(f"projects/{project_id}/hydrus/{hydrus_id}/")

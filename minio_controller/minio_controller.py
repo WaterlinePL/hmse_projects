@@ -35,6 +35,9 @@ class MinIOController:
     def get_file(self, file_name: FilePathInBucket, output_location: os.PathLike):
         return self.minio_client.fget_object(ROOT_BUCKET, file_name, output_location)
 
+    def get_file_bytes(self, file_name: FilePathInBucket):
+        return self.minio_client.get_object(ROOT_BUCKET, file_name)
+
     def put_file(self, input_file: os.PathLike, bucket_location: FilePathInBucket):
         return self.minio_client.fput_object(ROOT_BUCKET, bucket_location, input_file)
 

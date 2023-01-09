@@ -16,12 +16,6 @@ class ProjectSimulationNotFinishedError(HTTPException):
     description = "Cannot download - project simulation not finished!"
 
 
-# TODO?
-class ProjectSimulationInProgressError(HTTPException):
-    code = 403
-    description = "Cannot download - project simulation not finished!"
-
-
 class UnknownHydrusModel(HTTPException):
     code = 404
     description = "Unknown Hydrus model!"
