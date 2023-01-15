@@ -113,9 +113,6 @@ class ProjectDao:
     def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
         os.remove(ProjectDao.get_shape_path(project_id, shape_id))
 
-    def delete_rch_shapes(self, project_id: ProjectID):
-        pass
-
     def add_modflow_rch_shapes(self, project_id: ProjectID, rch_shapes: List[np.ndarray]):
         os.makedirs(os.path.join(ProjectDao.get_project_path(project_id), 'rch_shapes'), exist_ok=True)
         for i, mask in enumerate(rch_shapes):
