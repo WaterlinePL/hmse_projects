@@ -3,10 +3,11 @@ import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Set, Dict, Union
 
-from hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
+from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
-from typing_help import HydrusID, ModflowID, WeatherID, ShapeID, ProjectID, ShapeColor
+from .typing_help import WeatherID, ShapeID, ProjectID, ShapeColor
+from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 
 # Is represented as .json file in store, accessed via dao

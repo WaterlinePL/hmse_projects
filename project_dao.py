@@ -8,9 +8,10 @@ from typing import List
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
-from hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from project_metadata import ProjectMetadata
-from typing_help import ProjectID, ModflowID, HydrusID, WeatherID, ShapeID
+from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .project_metadata import ProjectMetadata
+from .typing_help import ProjectID, WeatherID, ShapeID
+from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 WORKSPACE_PATH = 'workspace'
 METADATA_FILENAME = 'metadata.json'
@@ -111,6 +112,9 @@ class ProjectDao:
 
     def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
         os.remove(ProjectDao.get_shape_path(project_id, shape_id))
+
+    def delete_rch_shapes(self, project_id: ProjectID):
+        pass
 
     def add_modflow_rch_shapes(self, project_id: ProjectID, rch_shapes: List[np.ndarray]):
         os.makedirs(os.path.join(ProjectDao.get_project_path(project_id), 'rch_shapes'), exist_ok=True)

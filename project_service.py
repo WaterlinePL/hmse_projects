@@ -4,14 +4,15 @@ from typing import List, Dict
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
-from hmse_hydrological_models.hydrus import hydrus_utils
-from hmse_hydrological_models.modflow import modflow_utils
-from hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from project_dao import project_dao
-from project_exceptions import ProjectSimulationNotFinishedError
-from project_metadata import ProjectMetadata
-from shape_utils import generate_random_html_color
-from typing_help import ProjectID, HydrusID, ShapeID, WeatherID
+from .hmse_hydrological_models.hydrus import hydrus_utils
+from .hmse_hydrological_models.modflow import modflow_utils
+from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .project_dao import project_dao
+from .project_exceptions import ProjectSimulationNotFinishedError
+from .project_metadata import ProjectMetadata
+from .shape_utils import generate_random_html_color
+from .typing_help import ProjectID, ShapeID, WeatherID
+from .hmse_hydrological_models.typing_help import HydrusID
 
 
 def get(project_id: ProjectID) -> ProjectMetadata:
@@ -145,7 +146,10 @@ def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: n
 
 
 def delete_shape(project_id: ProjectID, shape_id: ShapeID) -> None:
+    metadata = project_dao.read_metadata(project_id)
+    metadata.remove_shape_metadata(shape_id)
     project_dao.delete_shape(project_id, shape_id)
+    project_dao.save_or_update_metadata(metadata)
 
 
 def map_shape_to_hydrus(project_id: ProjectID, shape_id: ShapeID, hydrus_id: HydrusID):
@@ -182,3 +186,5 @@ def wipe_all_shapes(project_id: ProjectID) -> None:
     metadata = project_dao.read_metadata(project_id)
     for shape_id in metadata.shapes:
         project_dao.delete_shape(metadata.project_id, shape_id)
+        metadata.remove_shape_metadata(shape_id)
+    project_dao.save_or_update_metadata(metadata)
