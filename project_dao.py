@@ -6,9 +6,10 @@ from typing import List
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
-from hmse_simulations.hmse_projects.minio_controller.minio_controller import minio_controller
-from hmse_simulations.hmse_projects.project_metadata import ProjectMetadata
-from hmse_simulations.hmse_projects.typing_help import ProjectID, ModflowID, HydrusID, WeatherID, ShapeID
+from .minio_controller.minio_controller import minio_controller
+from .project_metadata import ProjectMetadata
+from .typing_help import ProjectID, WeatherID, ShapeID
+from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 
 class ProjectDao:
