@@ -59,7 +59,8 @@ class MinIOController:
                            if file.is_file()]
         for file in files_to_upload:
             bucket_file = file.replace("\\", "/")
-            self.put_file(file, f"{bucket_location_root}/{bucket_file}")
+            location_in_bucket = bucket_file.replace(f"{directory}/", '')
+            self.put_file(file, f"{bucket_location_root}/{location_in_bucket}")
 
     def get_root(self) -> str:
         return ROOT_BUCKET
