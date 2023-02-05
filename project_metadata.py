@@ -6,6 +6,7 @@ from typing import Optional, Set, Dict, Union
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from .project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
+from .simulation_mode import SimulationMode
 from .typing_help import WeatherID, ShapeID, ProjectID, ShapeColor
 from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
@@ -44,7 +45,7 @@ class ProjectMetadata:
             return None
 
         start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        duration = datetime.timedelta(days=self.modflow_metadata.duration)
+        duration = datetime.timedelta(days=self.modflow_metadata.get_duration())
         return (start + duration).strftime("%Y-%m-%d")
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):

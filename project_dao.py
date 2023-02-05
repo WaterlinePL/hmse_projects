@@ -7,6 +7,7 @@ import numpy as np
 from werkzeug.datastructures import FileStorage
 
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .hmse_hydrological_models.modflow.modflow_step import ModflowStep, ModflowStepType
 from .project_metadata import ProjectMetadata
 from .typing_help import ProjectID, WeatherID, ShapeID
 from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
@@ -127,7 +128,10 @@ class ProjectMock(ProjectDao):
                                    grid_unit='meter',
                                    row_cells=[50] * 10,
                                    col_cells=[20] * 10,
-                                   duration=90
+                                   steps_info=[
+                                       ModflowStep(ModflowStepType.STEADY_STATE, 365),
+                                       ModflowStep(ModflowStepType.TRANSIENT, 30),
+                                   ]
                                ),
                                hydrus_models={'las', 'trawa'},
                                weather_files={'weather1', 'weather2'},
