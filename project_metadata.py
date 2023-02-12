@@ -36,6 +36,8 @@ class ProjectMetadata:
     shapes_to_hydrus: Dict[ShapeID, Union[HydrusID, float]] = field(default_factory=dict)
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
 
+    simulation_mode: SimulationMode = SimulationMode.SIMPLE_COUPLING
+
     def __post_init__(self):
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
