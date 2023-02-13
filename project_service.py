@@ -12,6 +12,7 @@ from .project_dao import project_dao
 from .project_exceptions import ProjectSimulationNotFinishedError
 from .project_metadata import ProjectMetadata
 from .shape_utils import generate_random_html_color
+from .simulation_mode import SimulationMode
 from .typing_help import ProjectID, ShapeID, WeatherID
 
 
@@ -188,4 +189,10 @@ def wipe_all_shapes(project_id: ProjectID) -> None:
     for shape_id in shape_ids:
         project_dao.delete_shape(metadata.project_id, shape_id)
         metadata.remove_shape_metadata(shape_id)
+    project_dao.save_or_update_metadata(metadata)
+
+
+def update_simulation_mode(project_id: ProjectID, mode: str) -> None:
+    metadata = project_dao.read_metadata(project_id)
+    metadata.simulation_mode = SimulationMode(mode)
     project_dao.save_or_update_metadata(metadata)
