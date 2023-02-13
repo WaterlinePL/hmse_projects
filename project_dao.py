@@ -9,6 +9,7 @@ from werkzeug.datastructures import FileStorage
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from .hmse_hydrological_models.modflow.modflow_step import ModflowStep, ModflowStepType
 from .project_metadata import ProjectMetadata
+from .simulation_mode import SimulationMode
 from .typing_help import ProjectID, WeatherID, ShapeID
 from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
@@ -141,6 +142,7 @@ class ProjectMock(ProjectDao):
                                shapes_to_hydrus={'shape1': 'trawa'},
                                hydrus_durations={'las': 365, 'trawa': 250},
                                weather_files_durations={'weather1': 700, 'weather2': 800},
+                               simulation_mode=SimulationMode.WITH_FEEDBACK
                                )
 
     def read_all_metadata(self) -> List[ProjectMetadata]:
