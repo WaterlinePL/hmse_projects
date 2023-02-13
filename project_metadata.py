@@ -4,10 +4,11 @@ from dataclasses import dataclass, field
 from typing import Optional, Set, Dict, Union
 
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 from .project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
+from .simulation_mode import SimulationMode
 from .typing_help import WeatherID, ShapeID, ProjectID, ShapeColor
-from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 
 # Is represented as .json file in store, accessed via dao
@@ -35,6 +36,8 @@ class ProjectMetadata:
     shapes_to_hydrus: Dict[ShapeID, Union[HydrusID, float]] = field(default_factory=dict)
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
 
+    simulation_mode: SimulationMode = SimulationMode.SIMPLE_COUPLING
+
     def __post_init__(self):
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
@@ -44,7 +47,7 @@ class ProjectMetadata:
             return None
 
         start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        duration = datetime.timedelta(days=self.modflow_metadata.duration)
+        duration = datetime.timedelta(days=self.modflow_metadata.get_duration())
         return (start + duration).strftime("%Y-%m-%d")
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):
@@ -133,6 +136,15 @@ class ProjectMetadata:
 
     def contains_shape(self, shape_id: ShapeID) -> bool:
         return shape_id in self.shapes
+
+    # TODO: Migrate to main interface
+    def get_used_hydrus_models(self):
+        return {hydrus_id for hydrus_id in self.shapes_to_hydrus.values()
+                if isinstance(hydrus_id, str)}
+
+    # TODO: Migrate to main interface
+    def get_used_shape_mappings(self):
+        return {mapping_value for mapping_value in self.shapes_to_hydrus.values()}
 
     def to_json_response(self):
         self.hydrus_models = list(self.hydrus_models)
