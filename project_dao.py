@@ -76,7 +76,7 @@ class ProjectDao:
             shutil.move(validated_file_path, modflow_model_dir)
 
     def delete_hydrus_model(self, project_id: ProjectID, hydrus_id: HydrusID) -> None:
-        shutil.rmtree(ProjectDao.get_hydrus_model_path(project_id, hydrus_id))
+        shutil.rmtree(local_paths.get_hydrus_model_path(project_id, hydrus_id))
 
     def delete_modflow_model(self, project_id: ProjectID, modflow_id: ModflowID) -> None:
         shutil.rmtree(local_paths.get_modflow_model_path(project_id, modflow_id))
