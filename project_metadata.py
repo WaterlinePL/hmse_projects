@@ -80,6 +80,9 @@ class ProjectMetadata:
     def remove_weather_file(self, weather_file_id: WeatherID):
         try:
             self.weather_files.remove(weather_file_id)
+            for hydrus_id, weather_id in self.hydrus_to_weather:
+                if weather_id == weather_file_id:
+                    del self.hydrus_to_weather[hydrus_id]
         except KeyError:
             raise UnknownWeatherFile(description=f"Cannot delete weather file {weather_file_id} - no such file")
 
@@ -89,6 +92,8 @@ class ProjectMetadata:
     def remove_shape_metadata(self, shape_id: ShapeID):
         try:
             del self.shapes[shape_id]
+            if shape_id in self.shapes_to_hydrus:
+                del self.shapes_to_hydrus[shape_id]
         except KeyError:
             raise UnknownShape(description=f"Cannot delete shape {shape_id} - no such shape!")
 
