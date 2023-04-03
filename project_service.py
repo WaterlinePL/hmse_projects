@@ -1,3 +1,4 @@
+import os
 import tempfile
 from typing import List, Dict
 
@@ -5,7 +6,7 @@ import numpy as np
 from werkzeug.datastructures import FileStorage
 
 from .hmse_hydrological_models.hydrus import hydrus_utils
-from .hmse_hydrological_models.modflow import modflow_utils
+from .hmse_hydrological_models.modflow import modflow_utils, zonebudget_shape_parser
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
 from .hmse_hydrological_models.typing_help import HydrusID
 from .project_dao import project_dao
@@ -118,12 +119,35 @@ def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
 
 def add_rch_shapes(project_id: ProjectID):
     rch_shapes = project_dao.get_rch_shapes(project_id)
-    for shape_id, mask in rch_shapes.items():
-        project_dao.save_or_update_shape(project_id, shape_id, mask)
+    shape_ids = __save_new_shapes(project_id, rch_shapes)
     return {
-        "shapeIds": {shape_id: generate_random_html_color() for shape_id in rch_shapes.keys()},
+        "shapeIds": shape_ids,
         "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in rch_shapes.items()},
     }
+
+
+def add_zb_shapes(project_id: ProjectID, zb_file: FileStorage):
+    with tempfile.TemporaryDirectory() as zb_dir:
+        zb_path = os.path.join(zb_dir, zb_file.filename)
+        zb_file.save(zb_path)
+        zb_shapes = zonebudget_shape_parser.read_zone_file(zb_path)
+
+    shape_data = {f"zb_shape_{i + 1}": shape for i, shape in enumerate(zb_shapes)}
+    shape_ids = __save_new_shapes(project_id, shape_data)
+    return {
+        "shapeIds": shape_ids,
+        "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in shape_data.items()}
+    }
+
+
+def __save_new_shapes(project_id, shape_data):
+    for shape_id, mask in shape_data.items():
+        project_dao.save_or_update_shape(project_id, shape_id, mask)
+    shape_ids = {shape_id: generate_random_html_color() for shape_id in shape_data.keys()}
+    metadata = project_dao.read_metadata(project_id)
+    metadata.shapes.update(shape_ids)
+    project_dao.save_or_update_metadata(metadata)
+    return shape_ids
 
 
 def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str,
