@@ -2,9 +2,11 @@ import os
 import tempfile
 from typing import List, Dict
 
+import cv2
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
+from . import polygon_scaler
 from .hmse_hydrological_models.hydrus import hydrus_utils
 from .hmse_hydrological_models.modflow import modflow_utils, zonebudget_shape_parser
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
@@ -109,12 +111,10 @@ def delete_weather_file(project_id: ProjectID, weather_id: HydrusID):
     project_dao.save_or_update_metadata(metadata)
 
 
-def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, np.ndarray]:
+def get_all_shapes(project_id: ProjectID) -> Dict[ShapeID, List[List[int]]]:
     metadata = project_dao.read_metadata(project_id)
-    shapes = {}
-    for shape_id in metadata.shapes.keys():
-        shapes[shape_id] = project_dao.get_shape(project_id, shape_id).tolist()
-    return shapes
+    shapes_to_masks = {shape_id: project_dao.get_shape(project_id, shape_id) for shape_id in metadata.shapes.keys()}
+    return __transform_mask_to_polygon(shapes_to_masks)
 
 
 def add_rch_shapes(project_id: ProjectID):
@@ -122,7 +122,7 @@ def add_rch_shapes(project_id: ProjectID):
     shape_ids = __save_new_shapes(project_id, rch_shapes)
     return {
         "shapeIds": shape_ids,
-        "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in rch_shapes.items()},
+        "shapeMasks": __transform_mask_to_polygon(rch_shapes)
     }
 
 
@@ -132,25 +132,15 @@ def add_zb_shapes(project_id: ProjectID, zb_file: FileStorage):
         zb_file.save(zb_path)
         zb_shapes = zonebudget_shape_parser.read_zone_file(zb_path)
 
-    shape_data = {f"zb_shape_{i + 1}": shape for i, shape in enumerate(zb_shapes)}
-    shape_ids = __save_new_shapes(project_id, shape_data)
+    zb_shapes = {f"zb_shape_{i + 1}": shape for i, shape in enumerate(zb_shapes)}
+    shape_ids = __save_new_shapes(project_id, zb_shapes)
     return {
         "shapeIds": shape_ids,
-        "shapeMasks": {shape_id: mask.tolist() for shape_id, mask in shape_data.items()}
+        "shapeMasks": __transform_mask_to_polygon(zb_shapes)
     }
 
 
-def __save_new_shapes(project_id, shape_data):
-    for shape_id, mask in shape_data.items():
-        project_dao.save_or_update_shape(project_id, shape_id, mask)
-    shape_ids = {shape_id: generate_random_html_color() for shape_id in shape_data.keys()}
-    metadata = project_dao.read_metadata(project_id)
-    metadata.shapes.update(shape_ids)
-    project_dao.save_or_update_metadata(metadata)
-    return shape_ids
-
-
-def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: np.ndarray, color: str,
+def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, color: str,
                          new_shape_id: ShapeID) -> None:
     metadata = project_dao.read_metadata(project_id)
     if metadata.contains_shape(shape_id) and shape_id != new_shape_id:
@@ -166,7 +156,7 @@ def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, shape_mask: n
         metadata.remove_shape_metadata(shape_id)
 
     metadata.add_shape_metadata(new_shape_id, color)
-    project_dao.save_or_update_shape(project_id, new_shape_id, shape_mask)
+    # project_dao.save_or_update_shape(project_id, new_shape_id, shape_mask)
     project_dao.save_or_update_metadata(metadata)
 
 
@@ -220,3 +210,23 @@ def update_simulation_mode(project_id: ProjectID, mode: str) -> None:
     metadata = project_dao.read_metadata(project_id)
     metadata.simulation_mode = SimulationMode(mode)
     project_dao.save_or_update_metadata(metadata)
+
+
+def __transform_mask_to_polygon(shapes_to_mask: Dict[ShapeID, np.ndarray]) -> Dict[ShapeID, List[List[int]]]:
+    res_shapes = {}
+    for shape_id, mask in shapes_to_mask.items():
+        processed_mask = mask.astype(int)
+        polygons, _ = cv2.findContours(processed_mask, cv2.RETR_FLOODFILL, cv2.CHAIN_APPROX_NONE)
+        shape_polygon = polygons[-1].reshape((-1, 2))
+        res_shapes[shape_id] = polygon_scaler.scale_polygon(shape_polygon, processed_mask.shape).tolist()
+    return res_shapes
+
+
+def __save_new_shapes(project_id, shape_data):
+    for shape_id, mask in shape_data.items():
+        project_dao.save_or_update_shape(project_id, shape_id, mask)
+    shape_ids = {shape_id: generate_random_html_color() for shape_id in shape_data.keys()}
+    metadata = project_dao.read_metadata(project_id)
+    metadata.shapes.update(shape_ids)
+    project_dao.save_or_update_metadata(metadata)
+    return shape_ids
