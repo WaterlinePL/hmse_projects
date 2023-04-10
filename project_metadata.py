@@ -142,15 +142,6 @@ class ProjectMetadata:
     def contains_shape(self, shape_id: ShapeID) -> bool:
         return shape_id in self.shapes
 
-    # TODO: Migrate to main interface
-    def get_used_hydrus_models(self):
-        return {hydrus_id for hydrus_id in self.shapes_to_hydrus.values()
-                if isinstance(hydrus_id, str)}
-
-    # TODO: Migrate to main interface
-    def get_used_shape_mappings(self):
-        return {mapping_value for mapping_value in self.shapes_to_hydrus.values()}
-
     def to_json_response(self):
         self.hydrus_models = list(self.hydrus_models)
         self.weather_files = list(self.weather_files)
