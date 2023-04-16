@@ -4,10 +4,11 @@ from dataclasses import dataclass, field
 from typing import Optional, Set, Dict, Union
 
 from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
+from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 from .project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
+from .simulation_mode import SimulationMode
 from .typing_help import WeatherID, ShapeID, ProjectID, ShapeColor
-from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 
 # Is represented as .json file in store, accessed via dao
@@ -35,6 +36,8 @@ class ProjectMetadata:
     shapes_to_hydrus: Dict[ShapeID, Union[HydrusID, float]] = field(default_factory=dict)
     hydrus_to_weather: Dict[HydrusID, WeatherID] = field(default_factory=dict)
 
+    simulation_mode: SimulationMode = SimulationMode.SIMPLE_COUPLING
+
     def __post_init__(self):
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
@@ -44,7 +47,7 @@ class ProjectMetadata:
             return None
 
         start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        duration = datetime.timedelta(days=self.modflow_metadata.duration)
+        duration = datetime.timedelta(days=self.modflow_metadata.get_duration())
         return (start + duration).strftime("%Y-%m-%d")
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):
@@ -75,6 +78,9 @@ class ProjectMetadata:
     def remove_weather_file(self, weather_file_id: WeatherID):
         try:
             self.weather_files.remove(weather_file_id)
+            for hydrus_id, weather_id in self.hydrus_to_weather:
+                if weather_id == weather_file_id:
+                    del self.hydrus_to_weather[hydrus_id]
         except KeyError:
             raise UnknownWeatherFile(description=f"Cannot delete weather file {weather_file_id} - no such file")
 
@@ -84,6 +90,8 @@ class ProjectMetadata:
     def remove_shape_metadata(self, shape_id: ShapeID):
         try:
             del self.shapes[shape_id]
+            if shape_id in self.shapes_to_hydrus:
+                del self.shapes_to_hydrus[shape_id]
         except KeyError:
             raise UnknownShape(description=f"Cannot delete shape {shape_id} - no such shape!")
 
