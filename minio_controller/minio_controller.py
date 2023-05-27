@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Dict
 
+import boto3 as boto3
 from minio import Minio
 
 from hmse_simulations.hmse_projects.minio_controller.typing_help import PrefixEndedWithSlash, FilePathInBucket
@@ -17,8 +18,9 @@ ROOT_BUCKET = os.environ.get("HMSE_MINIO_ROOT_BUCKET")
 
 class MinIOController:
     def __init__(self):
+        endpoint = MINIO_ENDPOINT if MINIO_ENDPOINT else "s3.amazon.com/endpoint"
         self.minio_client = Minio(
-            endpoint=MINIO_ENDPOINT,
+            endpoint=endpoint,
             access_key=MINIO_ACCESS_KEY,
             secret_key=MINIO_SECRET_KEY,
             region=MINIO_REGION
