@@ -22,10 +22,7 @@ class ProjectDao:
 
     def read_metadata(self, project_id: ProjectID) -> ProjectMetadata:
         with open(local_paths.get_project_metadata_path(project_id), 'r') as handle:
-            metadata = ProjectMetadata(**json.load(handle))
-            if isinstance(metadata.modflow_metadata, dict):
-                metadata.modflow_metadata = ModflowMetadata(**metadata.modflow_metadata)
-            return metadata
+            return ProjectMetadata(**json.load(handle))
 
     def read_all_metadata(self) -> List[ProjectMetadata]:
         return [self.read_metadata(project_id) for project_id in self.read_all_names()]
