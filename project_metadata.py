@@ -43,6 +43,8 @@ class ProjectMetadata:
 
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
+        if isinstance(self.modflow_metadata, dict):
+            self.modflow_metadata = ModflowMetadata(**self.modflow_metadata)
 
     def calculate_end_date(self):
         if self.start_date is None or not self.modflow_metadata:
