@@ -7,10 +7,9 @@ from typing import List
 import numpy as np
 from werkzeug.datastructures import FileStorage
 
-from .hmse_hydrological_models.local_fs_configuration import local_paths
-from .hmse_hydrological_models.local_fs_configuration.path_constants import WORKSPACE_PATH
-from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
+from .hmse_hydrological_models.processing.local_fs_configuration import local_paths
+from .hmse_hydrological_models.processing.local_fs_configuration.path_constants import WORKSPACE_PATH
+from .hmse_hydrological_models.processing.typing_help import ModflowID, HydrusID
 from .project_metadata import ProjectMetadata
 from .typing_help import ProjectID, WeatherID, ShapeID
 

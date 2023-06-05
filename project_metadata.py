@@ -3,8 +3,8 @@ import datetime
 from dataclasses import dataclass, field
 from typing import Optional, Set, Dict, Union
 
-from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
+from .hmse_hydrological_models.processing.modflow.modflow_metadata import ModflowMetadata
+from .hmse_hydrological_models.processing.typing_help import ModflowID, HydrusID
 from .project_exceptions import UnknownShape, UnknownHydrusModel, DuplicateHydrusModel, \
     DuplicateWeatherFile, UnknownWeatherFile
 from .simulation_mode import SimulationMode
