@@ -7,9 +7,9 @@ import numpy as np
 from werkzeug.datastructures import FileStorage
 
 from .minio_controller.minio_controller import minio_controller
+from .hmse_hydrological_models.processing.typing_help import ModflowID, HydrusID
 from .project_metadata import ProjectMetadata
 from .typing_help import ProjectID, WeatherID, ShapeID
-from .hmse_hydrological_models.typing_help import ModflowID, HydrusID
 
 
 class ProjectDao:

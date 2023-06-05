@@ -7,10 +7,10 @@ import numpy as np
 from werkzeug.datastructures import FileStorage
 
 from . import polygon_scaler
-from .hmse_hydrological_models.hydrus import hydrus_utils
-from .hmse_hydrological_models.modflow import modflow_utils, zonebudget_shape_parser
-from .hmse_hydrological_models.modflow.modflow_metadata import ModflowMetadata
-from .hmse_hydrological_models.typing_help import HydrusID
+from .hmse_hydrological_models.processing.hydrus import hydrus_utils
+from .hmse_hydrological_models.processing.modflow import modflow_utils, zonebudget_shape_parser
+from .hmse_hydrological_models.processing.modflow.modflow_metadata import ModflowMetadata
+from .hmse_hydrological_models.processing.typing_help import HydrusID
 from .project_dao import project_dao
 from .project_exceptions import ProjectSimulationNotFinishedError
 from .project_metadata import ProjectMetadata
