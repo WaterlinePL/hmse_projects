@@ -47,7 +47,7 @@ class ProjectMetadata:
             return None
 
         start = datetime.datetime.strptime(self.start_date, "%Y-%m-%d")
-        duration = datetime.timedelta(days=self.modflow_metadata.duration)
+        duration = datetime.timedelta(days=self.modflow_metadata.get_duration())
         return (start + duration).strftime("%Y-%m-%d")
 
     def set_modflow_metadata(self, modflow_metadata: ModflowMetadata):
