@@ -4,11 +4,11 @@ import os
 from pathlib import Path
 from typing import Dict
 
-import boto3 as boto3
 from minio import Minio
 
-from hmse_simulations.hmse_projects.minio_controller.typing_help import PrefixEndedWithSlash, FilePathInBucket
+from .typing_help import PrefixEndedWithSlash, FilePathInBucket
 
+# TODO: S3 secrets
 MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT")
