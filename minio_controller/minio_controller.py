@@ -1,10 +1,12 @@
 import io
 import json
 import os
+from enum import auto
 from pathlib import Path
 from typing import Dict
 
 from minio import Minio
+from strenum import StrEnum
 
 from .typing_help import PrefixEndedWithSlash, FilePathInBucket
 
@@ -16,9 +18,15 @@ MINIO_REGION = os.environ.get("MINIO_REGION")
 ROOT_BUCKET = os.environ.get("HMSE_MINIO_ROOT_BUCKET")
 
 
+class S3StorageType(StrEnum):
+    AWS_S3 = auto()
+    MINIO = auto()
+
+
 class MinIOController:
-    def __init__(self):
+    def __init__(self, s3_type: str):
         endpoint = MINIO_ENDPOINT if MINIO_ENDPOINT else "s3.amazon.com/endpoint"
+        self.s3_type = s3_type
         self.minio_client = Minio(
             endpoint=endpoint,
             access_key=MINIO_ACCESS_KEY,
@@ -44,7 +52,7 @@ class MinIOController:
         return self.minio_client.fput_object(ROOT_BUCKET, bucket_location, input_file)
 
     def put_json_file(self, json_data: Dict, object_location: FilePathInBucket):
-        serialized = json.dumps(json_data, indent=2).encode('utf-8')
+        serialized = json.dumps(json_data, indent=2, default=lambda o: o.__dict__).encode('utf-8')
         return self.minio_client.put_object(ROOT_BUCKET, object_location, io.BytesIO(serialized), len(serialized),
                                             content_type="application/json")
 
@@ -67,5 +75,11 @@ class MinIOController:
     def get_root(self) -> str:
         return ROOT_BUCKET
 
+    def get_s3_prefix(self) -> str:
+        return {
+            S3StorageType.AWS_S3: "s3://",
+            S3StorageType.MINIO: "minio/"
+        }[self.s3_type]
 
-minio_controller = MinIOController()
+
+minio_controller = MinIOController(os.environ.get("S3_TYPE", "MINIO"))

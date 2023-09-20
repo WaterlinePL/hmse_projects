@@ -27,7 +27,7 @@ class ProjectDao:
                 if obj.object_name != "projects/"]
 
     def save_or_update_metadata(self, metadata: ProjectMetadata) -> None:
-        minio_controller.put_json_file(metadata.to_json_response().__dict__,
+        minio_controller.put_json_file(metadata.to_json_response(),
                                        f"projects/{metadata.project_id}/metadata.json")
 
     def delete_project(self, project_id: ProjectID) -> None:
@@ -66,11 +66,14 @@ class ProjectDao:
     def save_or_update_shape(self,
                              project_id: ProjectID,
                              shape_id: ShapeID,
-                             shape_mask: np.ndarray) -> None:
+                             shape_mask: np.ndarray,
+                             is_rch: bool = False) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             shape_path = os.path.join(tmp_dir, "shape.npy")
             np.save(shape_path, shape_mask)
-            minio_controller.put_file(shape_path, f"projects/{project_id}/shapes/{shape_id}.npy")
+            shape_project_dir = "rch_shapes" if is_rch else "shapes"
+            s3_path = f"projects/{project_id}/{shape_project_dir}/{shape_id}.npy"
+            minio_controller.put_file(shape_path, s3_path)
 
     def get_rch_shapes(self, project_id: ProjectID):
         rch_shapes = {}
@@ -85,10 +88,10 @@ class ProjectDao:
         minio_controller.delete_directory(f"projects/{project_id}/rch_shapes")
 
     def get_shape(self, project_id: ProjectID, shape_id: ShapeID) -> np.ndarray:
-        shape_bucket = "rch_shapes" if shape_id.startswith("rch_shape_") else "shapes"
+        shape_dir = "rch_shapes" if shape_id.startswith("rch_shape_") else "shapes"
         with tempfile.TemporaryDirectory() as tmp_dir:
             shape_path = os.path.join(tmp_dir, "shape.npy")
-            minio_controller.get_file(f"projects/{project_id}/{shape_bucket}/{shape_id}.npy", shape_path)
+            minio_controller.get_file(f"projects/{project_id}/{shape_dir}/{shape_id}.npy", shape_path)
             return np.load(shape_path)
 
     def delete_shape(self, project_id: ProjectID, shape_id: ShapeID) -> None:
@@ -96,8 +99,8 @@ class ProjectDao:
 
     def add_modflow_rch_shapes(self, project_id: ProjectID, rch_shapes: List[np.ndarray]):
         for i, mask in enumerate(rch_shapes):
-            shape_id = f"rch_shape_{i + 1}.npy"
-            self.save_or_update_shape(project_id, shape_id, mask)
+            shape_id = f"rch_shape_{i + 1}"
+            self.save_or_update_shape(project_id, shape_id, mask, is_rch=True)
 
     def get_project_root(self, project_id: ProjectID) -> str:
         return f"{minio_controller.get_root()}/projects/{project_id}"

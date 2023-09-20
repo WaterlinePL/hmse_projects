@@ -154,15 +154,7 @@ class ProjectMetadata:
     def to_json_response(self):
         self.hydrus_models = list(self.hydrus_models)
         self.weather_files = list(self.weather_files)
-
-        if self.modflow_metadata:
-            self.modflow_metadata = self.modflow_metadata.__dict__
-
         serialized = copy.deepcopy(self)
         self.hydrus_models = set(self.hydrus_models)
         self.weather_files = set(self.weather_files)
-
-        if self.modflow_metadata:
-            self.modflow_metadata = ModflowMetadata(**self.modflow_metadata)
-
         return serialized

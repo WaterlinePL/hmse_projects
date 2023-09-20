@@ -145,7 +145,7 @@ def add_zb_shapes(project_id: ProjectID, zb_file: FileStorage):
         "shapeMasks": __transform_mask_to_polygon(zb_shapes)
     }
 
-
+# FIXME: rch_shape_1.npy.npy
 def save_or_update_shape(project_id: ProjectID, shape_id: ShapeID, color: str,
                          new_shape_id: ShapeID) -> None:
     metadata = project_dao.read_metadata(project_id)
@@ -223,7 +223,10 @@ def __transform_mask_to_polygon(shapes_to_mask: Dict[ShapeID, np.ndarray]) -> Di
     for shape_id, mask in shapes_to_mask.items():
         processed_mask = mask.astype(int)
         polygons, _ = cv2.findContours(processed_mask, cv2.RETR_FLOODFILL, cv2.CHAIN_APPROX_NONE)
-        shape_polygon = polygons[-1].reshape((-1, 2))
+        if polygons:
+            shape_polygon = polygons[-1].reshape((-1, 2))
+        else:
+            shape_polygon = np.array([[0, 0]])
         res_shapes[shape_id] = polygon_scaler.scale_polygon(shape_polygon, processed_mask.shape).tolist()
     return res_shapes
 
